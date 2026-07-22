@@ -305,13 +305,55 @@ function renderInventory() {
 
 function openProductModal(id = null) {
     if (id) {
+       // Updated Inventory Modal Loader
+function openProductModal(id = null) {
+    if (id) {
         const p = products.find(x => x.id === id);
         document.getElementById('edit-product-id').value = p.id;
         document.getElementById('prod-name').value = p.name;
+        document.getElementById('prod-category').value = p.category || '';
         document.getElementById('prod-price').value = p.price;
         document.getElementById('prod-cost').value = p.cost || '';
         document.getElementById('prod-stock').value = p.stock;
         document.getElementById('product-modal-title').innerText = 'Edit Product';
+    } else {
+        document.getElementById('edit-product-id').value = '';
+        document.getElementById('prod-name').value = '';
+        document.getElementById('prod-category').value = '';
+        document.getElementById('prod-price').value = '';
+        document.getElementById('prod-cost').value = '';
+        document.getElementById('prod-stock').value = '';
+        document.getElementById('product-modal-title').innerText = 'Add Product';
+    }
+    document.getElementById('product-modal').classList.remove('hidden');
+}
+
+function closeProductModal() {
+    document.getElementById('product-modal').classList.add('hidden');
+}
+
+// Updated Save Product Function
+function saveProduct() {
+    const id = document.getElementById('edit-product-id').value;
+    const name = document.getElementById('prod-name').value;
+    const category = document.getElementById('prod-category').value;
+    const price = parseFloat(document.getElementById('prod-price').value);
+    const cost = parseFloat(document.getElementById('prod-cost').value) || 0;
+    const stock = parseInt(document.getElementById('prod-stock').value);
+
+    if (!name || !category || isNaN(price) || isNaN(stock)) {
+        return alert('Please fill in all fields including the category.');
+    }
+
+    if (id) {
+        db.collection("products").doc(id).update({ name, category, price, cost, stock })
+          .then(() => closeProductModal());
+    } else {
+        db.collection("products").add({ name, category, price, cost, stock })
+          .then(() => closeProductModal());
+    }
+}
+
     } else {
         document.getElementById('edit-product-id').value = '';
         document.getElementById('prod-name').value = '';
