@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MBO Solar Manager</title>
+    
+    <!-- PWA Settings -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2E7D32">
+    <link rel="apple-touch-icon" href="icon-192.png">
+
+    <!-- Google Fonts & Material Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- LOGIN SCREEN -->
+    <div id="login-screen" class="screen active">
+        <div class="login-container">
+            <div class="logo-circle">
+                <span class="material-icons" style="font-size: 48px; color: white;">solar_power</span>
+            </div>
+            <h1>MBO Enterprises</h1>
+            <p>Solar Manager POS</p>
+
+            <form id="login-form">
+                <div class="input-group">
+                    <span class="material-icons">person</span>
+                    <input type="text" id="username" placeholder="Username" required>
+                </div>
+                <div class="input-group">
+                    <span class="material-icons">lock</span>
+                    <input type="password" id="password" placeholder="Password" required>
+                </div>
+                <button type="submit" class="btn-primary">LOGIN</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- DASHBOARD SCREEN -->
+    <div id="dashboard-screen" class="screen hidden">
+        <header class="app-bar">
+            <div class="app-bar-title">
+                <span class="material-icons menu-icon">menu</span>
+                <h2>MBO Dashboard</h2>
+            </div>
+            <button class="icon-btn" onclick="logout()"><span class="material-icons">logout</span></button>
+        </header>
+
+        <main class="dashboard-content">
+            <div class="grid-cards">
+                <div class="stat-card" onclick="openReports()" style="cursor: pointer;">
+                    <div class="card-icon" style="color: #4CAF50; background: #E8F5E9;"><span class="material-icons">attach_money</span></div>
+                    <h3>Total Sales</h3>
+                    <p class="value" id="dash-total-sales">$0.00</p>
+                </div>
+                <div class="stat-card">
+                    <div class="card-icon" style="color: #2196F3; background: #E3F2FD;"><span class="material-icons">inventory</span></div>
+                    <h3>Products</h3>
+                    <p class="value">245</p>
+                </div>
+                <div class="stat-card" onclick="openCustomers()" style="cursor: pointer;">
+                    <div class="card-icon" style="color: #FF9800; background: #FFF3E0;"><span class="material-icons">people</span></div>
+                    <h3>Customers</h3>
+                    <p class="value">89</p>
+                </div>
+                <div class="stat-card">
+                    <div class="card-icon" style="color: #F44336; background: #FFEBEE;"><span class="material-icons">warning</span></div>
+                    <h3>Low Stock</h3>
+                    <p class="value">12</p>
+                </div>
+            </div>
+        </main>
+        
+        <nav class="bottom-nav">
+            <div class="nav-item active" onclick="showDashboardFromCustomers()"><span class="material-icons">dashboard</span><span>Home</span></div>
+            <div class="nav-item" onclick="openInventory()"><span class="material-icons">inventory_2</span><span>Stock</span></div>
+            <div class="nav-item fab-container">
+                <button class="fab" id="fab-pos"><span class="material-icons">point_of_sale</span></button>
+            </div>
+            <div class="nav-item" onclick="openCustomers()"><span class="material-icons">people</span><span>Clients</span></div>
+            <div class="nav-item"><span class="material-icons">settings</span><span>Settings</span></div>
+        </nav>
+    </div>
+
+    <!-- POS SCREEN -->
+    <div id="pos-screen" class="screen hidden">
+        <header class="app-bar">
+            <div class="app-bar-title">
+                <button class="icon-btn" onclick="closePOS()"><span class="material-icons">arrow_back</span></button>
+                <h2>New Sale</h2>
+            </div>
+            <button class="icon-btn"><span class="material-icons">search</span></button>
+        </header>
+
+        <main class="pos-content" id="product-list">
+            <!-- Products injected by JS -->
+        </main>
+
+        <div class="cart-bar" onclick="openCheckoutModal()">
+            <div class="cart-info">
+                <span class="material-icons">shopping_cart</span>
+                <span id="cart-count">0 Items</span>
+            </div>
+            <div class="cart-total" id="cart-total">$0.00</div>
+        </div>
+    </div>
+
+    <!-- CHECKOUT MODAL -->
+    <div id="checkout-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Checkout</h3>
+                <span class="material-icons" onclick="closeCheckoutModal()" style="cursor:pointer;">close</span>
+            </div>
+            
+            <div class="cart-items-preview" id="cart-items-preview">
+                <!-- Cart items list injected here -->
+            </div>
+
+            <div class="checkout-form">
+                <p style="font-weight: bold; font-size: 18px; margin: 10px 0;">Total: <span id="modal-total">$0.00</span></p>
+                
+                <div class="input-group">
+                    <span class="material-icons">person</span>
+                    <select id="checkout-customer">
+                        <option value="">Walk-in Customer (No Tracking)</option>
+                        <!-- Customers injected here -->
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <span class="material-icons">payments</span>
+                    <select id="payment-method">
+                        <option value="Cash">Cash</option>
+                        <option value="POS">POS Terminal</option>
+                        <option value="Transfer">Bank Transfer</option>
+                        <option value="Half Paid">Half Paid (Credit)</option>
+                    </select>
+                </div>
+                
+                <div class="input-group">
+                    <span class="material-icons">attach_money</span>
+                    <input type="number" id="amount-paid" placeholder="Amount Paid" required>
+                </div>
+
+                <p id="balance-due" style="color: #F44336; font-weight: bold; display: none;">Balance Due: $0.00</p>
+
+                <button class="btn-primary" onclick="processSale()">Complete Sale</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- INVENTORY SCREEN -->
+    <div id="inventory-screen" class="screen hidden">
+        <header class="app-bar">
+            <div class="app-bar-title">
+                <button class="icon-btn" onclick="showDashboard()"><span class="material-icons">arrow_back</span></button>
+                <h2>Inventory</h2>
+            </div>
+            <button class="icon-btn" onclick="openProductModal()"><span class="material-icons">add</span></button>
+        </header>
+
+        <main class="dashboard-content" id="inventory-list">
+            <!-- Inventory items injected by JS -->
+        </main>
+    </div>
+
+    <!-- ADD / EDIT PRODUCT MODAL -->
+    <div id="product-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="product-modal-title">Add Product</h3>
+                <span class="material-icons" onclick="closeProductModal()" style="cursor:pointer;">close</span>
+            </div>
+            
+            <div class="checkout-form">
+                <input type="hidden" id="edit-product-id">
+                
+                <div class="input-group">
+                    <span class="material-icons">inventory_2</span>
+                    <input type="text" id="prod-name" placeholder="Product Name" required>
+                </div>
+                
+                <div class="input-group">
+                    <span class="material-icons">attach_money</span>
+                    <input type="number" id="prod-price" placeholder="Selling Price ($)" required>
+                </div>
+
+                <div class="input-group">
+                    <span class="material-icons">money_off</span>
+                    <input type="number" id="prod-cost" placeholder="Purchase Cost ($)">
+                </div>
+                
+                <div class="input-group">
+                    <span class="material-icons">layers</span>
+                    <input type="number" id="prod-stock" placeholder="Quantity in Stock" required>
+                </div>
+
+                <button class="btn-primary" onclick="saveProduct()">Save Product</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- REPORTS SCREEN -->
+    <div id="reports-screen" class="screen hidden">
+        <header class="app-bar">
+            <div class="app-bar-title">
+                <button class="icon-btn" onclick="closeReports()"><span class="material-icons">arrow_back</span></button>
+                <h2>Financial Reports</h2>
+            </div>
+        </header>
+
+        <main class="dashboard-content">
+            <div class="report-filters">
+                <button class="filter-btn active" id="btn-today" onclick="generateReport('today')">Today</button>
+                <button class="filter-btn" id="btn-week" onclick="generateReport('week')">This Week</button>
+                <button class="filter-btn" id="btn-month" onclick="generateReport('month')">This Month</button>
+            </div>
+
+            <div class="grid-cards" style="margin-top: 16px;">
+                <div class="stat-card">
+                    <h3 style="color: #2E7D32;">Revenue</h3>
+                    <p class="value" id="rep-revenue">$0.00</p>
+                </div>
+                <div class="stat-card">
+                    <h3 style="color: #2196F3;">Net Profit</h3>
+                    <p class="value" id="rep-profit">$0.00</p>
+                </div>
+                <div class="stat-card">
+                    <h3 style="color: #F44336;">Unpaid Balances</h3>
+                    <p class="value" id="rep-unpaid">$0.00</p>
+                </div>
+            </div>
+
+            <h3 style="margin: 24px 0 12px; color: var(--text-light);">Transaction History</h3>
+            <div id="transaction-list">
+                <!-- Transactions injected by JS -->
+            </div>
+        </main>
+    </div>
+
+    <!-- CUSTOMERS SCREEN -->
+    <div id="customers-screen" class="screen hidden">
+        <header class="app-bar">
+            <div class="app-bar-title">
+                <button class="icon-btn" onclick="showDashboardFromCustomers()"><span class="material-icons">arrow_back</span></button>
+                <h2>Clients & Debtors</h2>
+            </div>
+            <button class="icon-btn" onclick="openCustomerModal()"><span class="material-icons">person_add</span></button>
+        </header>
+
+        <main class="dashboard-content" id="customer-list">
+            <!-- Customers injected here -->
+        </main>
+    </div>
+
+    <!-- ADD CUSTOMER MODAL -->
+    <div id="customer-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add New Client</h3>
+                <span class="material-icons" onclick="closeCustomerModal()" style="cursor:pointer;">close</span>
+            </div>
+            
+            <div class="checkout-form">
+                <div class="input-group">
+                    <span class="material-icons">badge</span>
+                    <input type="text" id="cust-name" placeholder="Full Name" required>
+                </div>
+                <div class="input-group">
+                    <span class="material-icons">phone</span>
+                    <input type="tel" id="cust-phone" placeholder="Phone Number">
+                </div>
+                <div class="input-group">
+                    <span class="material-icons">home</span>
+                    <input type="text" id="cust-address" placeholder="Address">
+                </div>
+
+                <button class="btn-primary" onclick="saveCustomer()">Save Client</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK (Compat Version) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    
+    <!-- Application Logic -->
+    <script src="app.js"></script>
+
+    <!-- PWA Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('sw.js')
+            .then(reg => console.log('Service Worker Registered!'))
+            .catch(err => console.error('Service Worker Registration Failed', err));
+        });
+      }
+    </script>
+</body>
+</html>
