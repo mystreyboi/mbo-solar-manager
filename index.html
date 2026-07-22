@@ -1,4 +1,4 @@
-  <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -65,6 +65,16 @@
                     <h3>Customers</h3>
                     <p class="value" id="dash-total-customers">0</p>
                 </div>
+                <div class="stat-card" onclick="openSuppliers()" style="cursor: pointer;">
+                    <div class="card-icon" style="color: #9C27B0; background: #F3E5F5;"><span class="material-icons">local_shipping</span></div>
+                    <h3>Suppliers</h3>
+                    <p class="value" id="dash-total-suppliers">0</p>
+                </div>
+                <div class="stat-card" onclick="openExpenses()" style="cursor: pointer;">
+                    <div class="card-icon" style="color: #E91E63; background: #FCE4EC;"><span class="material-icons">receipt_long</span></div>
+                    <h3>Expenses</h3>
+                    <p class="value" style="font-size: 16px; margin-top: 4px;">Track</p>
+                </div>
                 <div class="stat-card" onclick="openInventory()" style="cursor: pointer;">
                     <div class="card-icon" style="color: #F44336; background: #FFEBEE;"><span class="material-icons">warning</span></div>
                     <h3>Low Stock</h3>
@@ -93,9 +103,7 @@
             </div>
         </header>
 
-        <main class="pos-content" id="product-list">
-            <!-- Products injected by JS -->
-        </main>
+        <main class="pos-content" id="product-list"></main>
 
         <div class="cart-bar" onclick="openCheckoutModal()">
             <div class="cart-info">
@@ -176,18 +184,23 @@
                     <span class="material-icons">inventory_2</span>
                     <input type="text" id="prod-name" placeholder="Product Name" required>
                 </div>
+                
                 <div class="input-group">
-    <span class="material-icons">category</span>
-    <select id="prod-category" required>
-        <option value="" disabled selected>Select Category</option>
-        <option value="Solar Panel">Solar Panel</option>
-        <option value="Inverter">Inverter</option>
-        <option value="Battery">Battery</option>
-        <option value="Charge Controller">Charge Controller</option>
-        <option value="Accessories">Accessories</option>
-    </select>
+                    <span class="material-icons">category</span>
+                    <select id="prod-category" required>
+                        <option value="" disabled selected>Select Category</option>
+                        <option value="Solar Panel">Solar Panel</option>
+                        <option value="Inverter">Inverter</option>
+                        <option value="Battery">Battery</option>
+                        <option value="Charge Controller">Charge Controller</option>
+                        <option value="Solar Lights">Solar Lights</option>
+                        <option value="Cables">Cables</option>
+                        <option value="Accessories">Accessories</option>
+                        <option value="Mounting Kits">Mounting Kits</option>
+                        <option value="Other">Other</option>
+                    </select>
                 </div>
-              
+                
                 <div class="input-group">
                     <span class="material-icons">attach_money</span>
                     <input type="number" id="prod-price" placeholder="Selling Price (₦)" required>
@@ -284,29 +297,54 @@
         </div>
     </div>
 
-    <!-- SETTINGS SCREEN -->
-    <div id="settings-screen" class="screen hidden">
+    <!-- SUPPLIERS SCREEN -->
+    <div id="suppliers-screen" class="screen hidden">
         <header class="app-bar">
             <div class="app-bar-title">
-                <button class="icon-btn" onclick="closeSettings()"><span class="material-icons">arrow_back</span></button>
-                <h2>Business Settings</h2>
+                <button class="icon-btn" onclick="showDashboardFromSuppliers()"><span class="material-icons">arrow_back</span></button>
+                <h2>Suppliers & Vendors</h2>
             </div>
+            <button class="icon-btn" onclick="openSupplierModal()"><span class="material-icons">person_add</span></button>
         </header>
-        <main class="dashboard-content">
-            <div class="checkout-form" style="background: var(--surface-color); padding: 20px; border-radius: 16px;">
-                <h3 style="margin-bottom: 16px; color: var(--primary-color);">Company Profile</h3>
+
+        <main class="dashboard-content" id="supplier-list"></main>
+    </div>
+
+    <!-- ADD SUPPLIER MODAL -->
+    <div id="supplier-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add New Supplier</h3>
+                <span class="material-icons" onclick="closeSupplierModal()" style="cursor:pointer;">close</span>
+            </div>
+            
+            <div class="checkout-form">
                 <div class="input-group">
                     <span class="material-icons">business</span>
-                    <input type="text" id="set-company-name" value="MBO Enterprises">
+                    <input type="text" id="supp-name" placeholder="Supplier / Company Name" required>
                 </div>
                 <div class="input-group">
-                    <span class="material-icons">category</span>
-                    <input type="text" id="set-business-type" value="Solar Sales and Installation">
+                    <span class="material-icons">phone</span>
+                    <input type="tel" id="supp-phone" placeholder="Phone Number">
                 </div>
-                <button class="btn-primary" onclick="saveSettings()">Save Settings</button>
+                <div class="input-group">
+                    <span class="material-icons">email</span>
+                    <input type="email" id="supp-email" placeholder="Email Address">
+                </div>
+                <div class="input-group">
+                    <span class="material-icons">home</span>
+                    <input type="text" id="supp-address" placeholder="Address">
+                </div>
+                <div class="input-group">
+                    <span class="material-icons">inventory</span>
+                    <input type="text" id="supp-products" placeholder="Products Supplied (e.g., Panels, Inverters)">
+                </div>
+
+                <button class="btn-primary" onclick="saveSupplier()">Save Supplier</button>
             </div>
-        </main>
+        </div>
     </div>
+
     <!-- EXPENSES SCREEN -->
     <div id="expenses-screen" class="screen hidden">
         <header class="app-bar">
@@ -317,9 +355,7 @@
             <button class="icon-btn" onclick="openExpenseModal()"><span class="material-icons">add</span></button>
         </header>
 
-        <main class="dashboard-content" id="expense-list">
-            <!-- Expenses injected here -->
-        </main>
+        <main class="dashboard-content" id="expense-list"></main>
     </div>
 
     <!-- ADD EXPENSE MODAL -->
@@ -356,6 +392,30 @@
         </div>
     </div>
 
+    <!-- SETTINGS SCREEN -->
+    <div id="settings-screen" class="screen hidden">
+        <header class="app-bar">
+            <div class="app-bar-title">
+                <button class="icon-btn" onclick="closeSettings()"><span class="material-icons">arrow_back</span></button>
+                <h2>Business Settings</h2>
+            </div>
+        </header>
+        <main class="dashboard-content">
+            <div class="checkout-form" style="background: var(--surface-color); padding: 20px; border-radius: 16px;">
+                <h3 style="margin-bottom: 16px; color: var(--primary-color);">Company Profile</h3>
+                <div class="input-group">
+                    <span class="material-icons">business</span>
+                    <input type="text" id="set-company-name" value="MBO Enterprises">
+                </div>
+                <div class="input-group">
+                    <span class="material-icons">category</span>
+                    <input type="text" id="set-business-type" value="Solar Sales and Installation">
+                </div>
+                <button class="btn-primary" onclick="saveSettings()">Save Settings</button>
+            </div>
+        </main>
+    </div>
+
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="app.js"></script>
@@ -367,4 +427,4 @@
       }
     </script>
 </body>
-</html>          
+</html>
