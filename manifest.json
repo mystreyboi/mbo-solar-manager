@@ -1,0 +1,22 @@
+{
+  "name": "MBO Solar Manager",
+  "short_name": "MBO Solar",
+  "description": "POS and Inventory Management for MBO Enterprises",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#F5F5F5",
+  "theme_color": "#2E7D32",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}
