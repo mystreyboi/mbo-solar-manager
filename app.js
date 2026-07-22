@@ -1,3 +1,6 @@
+/* ==========================================================================
+   1. FIREBASE SETUP
+   ========================================================================== */
 const firebaseConfig = {
     apiKey: "YOUR_API_KEY",
     authDomain: "your-project-id.firebaseapp.com",
@@ -10,13 +13,23 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
+
+/* ==========================================================================
+   2. GLOBAL STATE
+   ========================================================================== */
 let products = [];
 let cart = [];
 let cartTotal = 0;
 let allSales = [];
 let customers = [];
+let suppliers = [];
+let expenses = [];
 let currentReportFilter = 'today';
 
+
+/* ==========================================================================
+   3. AUTHENTICATION & INITIALIZATION
+   ========================================================================== */
 const loginScreen = document.getElementById('login-screen');
 const dashboardScreen = document.getElementById('dashboard-screen');
 
@@ -51,6 +64,10 @@ window.onload = () => {
     }
 };
 
+
+/* ==========================================================================
+   4. NAVIGATION
+   ========================================================================== */
 function hideAllScreens() {
     document.querySelectorAll('.screen').forEach(s => s.classList.replace('active', 'hidden'));
 }
@@ -99,6 +116,28 @@ function showDashboardFromCustomers() {
     dashboardScreen.classList.replace('hidden', 'active');
 }
 
+function openSuppliers() {
+    hideAllScreens();
+    document.getElementById('suppliers-screen').classList.replace('hidden', 'active');
+    renderSuppliers();
+}
+
+function showDashboardFromSuppliers() {
+    hideAllScreens();
+    dashboardScreen.classList.replace('hidden', 'active');
+}
+
+function openExpenses() {
+    hideAllScreens();
+    document.getElementById('expenses-screen').classList.replace('hidden', 'active');
+    renderExpenses();
+}
+
+function showDashboardFromExpenses() {
+    hideAllScreens();
+    dashboardScreen.classList.replace('hidden', 'active');
+}
+
 function openSettings() {
     hideAllScreens();
     document.getElementById('settings-screen').classList.replace('hidden', 'active');
@@ -109,7 +148,10 @@ function closeSettings() {
     dashboardScreen.classList.replace('hidden', 'active');
 }
 
-// Firebase Realtime Listeners
+
+/* ==========================================================================
+   5. REAL-TIME FIREBASE LISTENERS
+   ========================================================================== */
 db.collection("products").onSnapshot((snapshot) => {
     products = [];
     snapshot.forEach((doc) => {
@@ -149,17 +191,39 @@ db.collection("customers").orderBy("name").onSnapshot((snapshot) => {
     }
 });
 
+db.collection("suppliers").orderBy("name").onSnapshot((snapshot) => {
+    suppliers = [];
+    snapshot.forEach((doc) => {
+        suppliers.push({ id: doc.id, ...doc.data() });
+    });
+    updateDashboardStats();
+    if (document.getElementById('suppliers-screen').classList.contains('active')) renderSuppliers();
+});
+
+db.collection("expenses").orderBy("date", "desc").onSnapshot((snapshot) => {
+    expenses = [];
+    snapshot.forEach((doc) => {
+        const data = doc.data();
+        expenses.push({ id: doc.id, ...data, date: data.date ? data.date.toDate() : new Date() });
+    });
+    if (document.getElementById('expenses-screen').classList.contains('active')) renderExpenses();
+});
+
 function updateDashboardStats() {
     const totalRevenue = allSales.reduce((sum, sale) => sum + sale.total_amount, 0);
     document.getElementById('dash-total-sales').innerText = `₦${totalRevenue.toFixed(2)}`;
     document.getElementById('dash-total-products').innerText = products.length;
     document.getElementById('dash-total-customers').innerText = customers.length;
+    document.getElementById('dash-total-suppliers').innerText = suppliers.length;
     
     const lowStockCount = products.filter(p => p.stock <= 10).length;
     document.getElementById('dash-low-stock').innerText = lowStockCount;
 }
 
-// POS Logic
+
+/* ==========================================================================
+   6. POINT OF SALE (POS) LOGIC
+   ========================================================================== */
 const amountPaidInput = document.getElementById('amount-paid');
 const balanceDueText = document.getElementById('balance-due');
 
@@ -171,7 +235,7 @@ function renderProducts() {
             <div class="product-item">
                 <div class="product-info">
                     <h4>${p.name}</h4>
-                    <p>Stock: ${p.stock}</p>
+                    <p>${p.category || 'Item'} | Stock: ${p.stock}</p>
                 </div>
                 <div style="display: flex; align-items: center;">
                     <span class="product-price">₦${p.price.toFixed(2)}</span>
@@ -278,7 +342,10 @@ function processSale() {
     });
 }
 
-// Inventory Logic
+
+/* ==========================================================================
+   7. INVENTORY MANAGEMENT LOGIC
+   ========================================================================== */
 function renderInventory() {
     const list = document.getElementById('inventory-list');
     list.innerHTML = '';
@@ -288,6 +355,7 @@ function renderInventory() {
             <div class="product-item">
                 <div class="product-info">
                     <h4>${p.name}</h4>
+                    <p style="font-size:11px; color:var(--text-light);">${p.category || 'General'}</p>
                     <span class="stock-badge ${isLow ? 'stock-low' : 'stock-good'}">
                         ${isLow ? 'Low Stock: ' : 'Stock: '} ${p.stock}
                     </span>
@@ -303,9 +371,6 @@ function renderInventory() {
     });
 }
 
-function openProductModal(id = null) {
-    if (id) {
-       // Updated Inventory Modal Loader
 function openProductModal(id = null) {
     if (id) {
         const p = products.find(x => x.id === id);
@@ -332,7 +397,6 @@ function closeProductModal() {
     document.getElementById('product-modal').classList.add('hidden');
 }
 
-// Updated Save Product Function
 function saveProduct() {
     const id = document.getElementById('edit-product-id').value;
     const name = document.getElementById('prod-name').value;
@@ -346,46 +410,16 @@ function saveProduct() {
     }
 
     if (id) {
-        db.collection("products").doc(id).update({ name, category, price, cost, stock })
-          .then(() => closeProductModal());
+        db.collection("products").doc(id).update({ name, category, price, cost, stock }).then(() => closeProductModal());
     } else {
-        db.collection("products").add({ name, category, price, cost, stock })
-          .then(() => closeProductModal());
+        db.collection("products").add({ name, category, price, cost, stock }).then(() => closeProductModal());
     }
 }
 
-    } else {
-        document.getElementById('edit-product-id').value = '';
-        document.getElementById('prod-name').value = '';
-        document.getElementById('prod-price').value = '';
-        document.getElementById('prod-cost').value = '';
-        document.getElementById('prod-stock').value = '';
-        document.getElementById('product-modal-title').innerText = 'Add Product';
-    }
-    document.getElementById('product-modal').classList.remove('hidden');
-}
 
-function closeProductModal() {
-    document.getElementById('product-modal').classList.add('hidden');
-}
-
-function saveProduct() {
-    const id = document.getElementById('edit-product-id').value;
-    const name = document.getElementById('prod-name').value;
-    const price = parseFloat(document.getElementById('prod-price').value);
-    const cost = parseFloat(document.getElementById('prod-cost').value) || 0;
-    const stock = parseInt(document.getElementById('prod-stock').value);
-
-    if (!name || isNaN(price) || isNaN(stock)) return alert('Please fill in valid numbers.');
-
-    if (id) {
-        db.collection("products").doc(id).update({ name, price, cost, stock }).then(() => closeProductModal());
-    } else {
-        db.collection("products").add({ name, price, cost, stock }).then(() => closeProductModal());
-    }
-}
-
-// Customer Logic
+/* ==========================================================================
+   8. CUSTOMER MANAGEMENT LOGIC
+   ========================================================================== */
 function renderCustomers() {
     const list = document.getElementById('customer-list');
     list.innerHTML = '';
@@ -435,7 +469,106 @@ function settleDebt(customerId, amount) {
     }
 }
 
-// Settings Logic
+
+/* ==========================================================================
+   9. SUPPLIER MANAGEMENT LOGIC
+   ========================================================================== */
+function openSupplierModal() { document.getElementById('supplier-modal').classList.remove('hidden'); }
+function closeSupplierModal() { document.getElementById('supplier-modal').classList.add('hidden'); }
+
+function saveSupplier() {
+    const name = document.getElementById('supp-name').value;
+    const phone = document.getElementById('supp-phone').value;
+    const email = document.getElementById('supp-email').value;
+    const address = document.getElementById('supp-address').value;
+    const productsSupplied = document.getElementById('supp-products').value;
+
+    if (!name) return alert('Supplier Name is required!');
+
+    db.collection("suppliers").add({ name, phone, email, address, productsSupplied }).then(() => {
+        document.getElementById('supp-name').value = '';
+        document.getElementById('supp-phone').value = '';
+        document.getElementById('supp-email').value = '';
+        document.getElementById('supp-address').value = '';
+        document.getElementById('supp-products').value = '';
+        closeSupplierModal();
+    });
+}
+
+function renderSuppliers() {
+    const list = document.getElementById('supplier-list');
+    list.innerHTML = '';
+    if (suppliers.length === 0) {
+        list.innerHTML = '<p style="text-align:center; color:gray; margin-top: 20px;">No suppliers added yet.</p>';
+        return;
+    }
+    suppliers.forEach(s => {
+        list.innerHTML += `
+            <div class="customer-card">
+                <div class="customer-info">
+                    <h4>${s.name}</h4>
+                    <p><span class="material-icons" style="font-size:14px;">phone</span> ${s.phone || 'No phone'}</p>
+                    <p><span class="material-icons" style="font-size:14px;">email</span> ${s.email || 'No email'}</p>
+                    <p><span class="material-icons" style="font-size:14px;">inventory</span> Supplies: ${s.productsSupplied || 'General'}</p>
+                </div>
+            </div>
+        `;
+    });
+}
+
+
+/* ==========================================================================
+   10. EXPENSE MANAGEMENT LOGIC
+   ========================================================================== */
+function openExpenseModal() { document.getElementById('expense-modal').classList.remove('hidden'); }
+function closeExpenseModal() { document.getElementById('expense-modal').classList.add('hidden'); }
+
+function saveExpense() {
+    const category = document.getElementById('exp-category').value;
+    const amount = parseFloat(document.getElementById('exp-amount').value);
+    const notes = document.getElementById('exp-notes').value;
+
+    if (isNaN(amount) || amount <= 0) return alert('Please enter a valid amount.');
+
+    db.collection("expenses").add({
+        category,
+        amount,
+        notes,
+        date: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(() => {
+        document.getElementById('exp-amount').value = '';
+        document.getElementById('exp-notes').value = '';
+        closeExpenseModal();
+    });
+}
+
+function renderExpenses() {
+    const list = document.getElementById('expense-list');
+    list.innerHTML = '';
+    if (expenses.length === 0) {
+        list.innerHTML = '<p style="text-align:center; color:gray; margin-top: 20px;">No expenses recorded yet.</p>';
+        return;
+    }
+    expenses.forEach(e => {
+        list.innerHTML += `
+            <div class="customer-card">
+                <div class="customer-info">
+                    <h4>${e.category}</h4>
+                    <p>${e.notes || 'No description'}</p>
+                    <p style="font-size: 10px; color: gray;">${e.date ? e.date.toLocaleDateString() : ''}</p>
+                </div>
+                <div class="customer-balance">
+                    <span class="balance-amount text-red">₦${e.amount.toFixed(2)}</span>
+                </div>
+            </div>
+        `;
+    });
+}
+
+
+/* ==========================================================================
+   11. SETTINGS LOGIC
+   ========================================================================== */
 function saveSettings() {
     const name = document.getElementById('set-company-name').value;
     localStorage.setItem('company_name', name);
@@ -452,7 +585,10 @@ function loadSettingsToUI() {
     }
 }
 
-// Reports Logic
+
+/* ==========================================================================
+   12. REPORTS & ANALYTICS LOGIC
+   ========================================================================== */
 function generateReport(timeframe) {
     currentReportFilter = timeframe;
     document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
@@ -517,78 +653,6 @@ function generateReport(timeframe) {
                 <p style="font-size: 11px; color: gray; margin-top: 8px;">
                     ${sale.items.map(i => `${i.qty}x ${i.name}`).join(', ')}
                 </p>
-            </div>
-        `;
-    });
-}
-// --- EXPENSE MANAGEMENT LOGIC ---
-let expenses = [];
-
-// Listen to Expenses in Firebase
-db.collection("expenses").orderBy("date", "desc").onSnapshot((snapshot) => {
-    expenses = [];
-    snapshot.forEach((doc) => {
-        const data = doc.data();
-        expenses.push({ id: doc.id, ...data, date: data.date ? data.date.toDate() : new Date() });
-    });
-    if (document.getElementById('expenses-screen').classList.contains('active')) {
-        renderExpenses();
-    }
-});
-
-function openExpenses() {
-    hideAllScreens();
-    document.getElementById('expenses-screen').classList.replace('hidden', 'active');
-    renderExpenses();
-}
-
-function showDashboardFromExpenses() {
-    hideAllScreens();
-    dashboardScreen.classList.replace('hidden', 'active');
-}
-
-function openExpenseModal() { document.getElementById('expense-modal').classList.remove('hidden'); }
-function closeExpenseModal() { document.getElementById('expense-modal').classList.add('hidden'); }
-
-function saveExpense() {
-    const category = document.getElementById('exp-category').value;
-    const amount = parseFloat(document.getElementById('exp-amount').value);
-    const notes = document.getElementById('exp-notes').value;
-
-    if (isNaN(amount) || amount <=0) return alert('Please enter a valid amount.');
-
-    db.collection("expenses").add({
-        category,
-        amount,
-        notes,
-        date: firebase.firestore.FieldValue.serverTimestamp()
-    }).then(() => {
-        document.getElementById('exp-amount').value = '';
-        document.getElementById('exp-notes').value = '';
-        closeExpenseModal();
-    });
-}
-
-function renderExpenses() {
-    const list = document.getElementById('expense-list');
-    list.innerHTML = '';
-    
-    if (expenses.length === 0) {
-        list.innerHTML = '<p style="text-align:center; color:gray; margin-top: 20px;">No expenses recorded yet.</p>';
-        return;
-    }
-
-    expenses.forEach(e => {
-        list.innerHTML += `
-            <div class="customer-card">
-                <div class="customer-info">
-                    <h4>${e.category}</h4>
-                    <p>${e.notes || 'No description'}</p>
-                    <p style="font-size: 10px; color: gray;">${e.date ? e.date.toLocaleDateString() : ''}</p>
-                </div>
-                <div class="customer-balance">
-                    <span class="balance-amount text-red">₦${e.amount.toFixed(2)}</span>
-                </div>
             </div>
         `;
     });
