@@ -307,6 +307,54 @@
             </div>
         </main>
     </div>
+    <!-- EXPENSES SCREEN -->
+    <div id="expenses-screen" class="screen hidden">
+        <header class="app-bar">
+            <div class="app-bar-title">
+                <button class="icon-btn" onclick="showDashboardFromExpenses()"><span class="material-icons">arrow_back</span></button>
+                <h2>Business Expenses</h2>
+            </div>
+            <button class="icon-btn" onclick="openExpenseModal()"><span class="material-icons">add</span></button>
+        </header>
+
+        <main class="dashboard-content" id="expense-list">
+            <!-- Expenses injected here -->
+        </main>
+    </div>
+
+    <!-- ADD EXPENSE MODAL -->
+    <div id="expense-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Record Expense</h3>
+                <span class="material-icons" onclick="closeExpenseModal()" style="cursor:pointer;">close</span>
+            </div>
+            
+            <div class="checkout-form">
+                <div class="input-group">
+                    <span class="material-icons">category</span>
+                    <select id="exp-category" required>
+                        <option value="Transport">Transport</option>
+                        <option value="Fuel">Fuel</option>
+                        <option value="Rent">Rent</option>
+                        <option value="Electricity">Electricity</option>
+                        <option value="Salaries">Salaries</option>
+                        <option value="Miscellaneous">Miscellaneous</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <span class="material-icons">attach_money</span>
+                    <input type="number" id="exp-amount" placeholder="Amount (₦)" required>
+                </div>
+                <div class="input-group">
+                    <span class="material-icons">note</span>
+                    <input type="text" id="exp-notes" placeholder="Description / Notes">
+                </div>
+
+                <button class="btn-primary" onclick="saveExpense()">Save Expense</button>
+            </div>
+        </div>
+    </div>
 
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
