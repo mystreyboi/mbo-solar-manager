@@ -1,16 +1,14 @@
-<!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MBO Solar Manager</title>
     
-    <!-- PWA Settings -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#2E7D32">
     <link rel="apple-touch-icon" href="icon-192.png">
 
-    <!-- Google Fonts & Material Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
@@ -45,7 +43,7 @@
         <header class="app-bar">
             <div class="app-bar-title">
                 <span class="material-icons menu-icon">menu</span>
-                <h2>MBO Dashboard</h2>
+                <h2 id="app-title-header">MBO Enterprises</h2>
             </div>
             <button class="icon-btn" onclick="logout()"><span class="material-icons">logout</span></button>
         </header>
@@ -55,22 +53,22 @@
                 <div class="stat-card" onclick="openReports()" style="cursor: pointer;">
                     <div class="card-icon" style="color: #4CAF50; background: #E8F5E9;"><span class="material-icons">attach_money</span></div>
                     <h3>Total Sales</h3>
-                    <p class="value" id="dash-total-sales">$0.00</p>
+                    <p class="value" id="dash-total-sales">₦0.00</p>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card" onclick="openInventory()" style="cursor: pointer;">
                     <div class="card-icon" style="color: #2196F3; background: #E3F2FD;"><span class="material-icons">inventory</span></div>
                     <h3>Products</h3>
-                    <p class="value">245</p>
+                    <p class="value" id="dash-total-products">0</p>
                 </div>
                 <div class="stat-card" onclick="openCustomers()" style="cursor: pointer;">
                     <div class="card-icon" style="color: #FF9800; background: #FFF3E0;"><span class="material-icons">people</span></div>
                     <h3>Customers</h3>
-                    <p class="value">89</p>
+                    <p class="value" id="dash-total-customers">0</p>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card" onclick="openInventory()" style="cursor: pointer;">
                     <div class="card-icon" style="color: #F44336; background: #FFEBEE;"><span class="material-icons">warning</span></div>
                     <h3>Low Stock</h3>
-                    <p class="value">12</p>
+                    <p class="value" id="dash-low-stock">0</p>
                 </div>
             </div>
         </main>
@@ -82,7 +80,7 @@
                 <button class="fab" id="fab-pos"><span class="material-icons">point_of_sale</span></button>
             </div>
             <div class="nav-item" onclick="openCustomers()"><span class="material-icons">people</span><span>Clients</span></div>
-            <div class="nav-item"><span class="material-icons">settings</span><span>Settings</span></div>
+            <div class="nav-item" onclick="openSettings()"><span class="material-icons">settings</span><span>Settings</span></div>
         </nav>
     </div>
 
@@ -93,7 +91,6 @@
                 <button class="icon-btn" onclick="closePOS()"><span class="material-icons">arrow_back</span></button>
                 <h2>New Sale</h2>
             </div>
-            <button class="icon-btn"><span class="material-icons">search</span></button>
         </header>
 
         <main class="pos-content" id="product-list">
@@ -105,7 +102,7 @@
                 <span class="material-icons">shopping_cart</span>
                 <span id="cart-count">0 Items</span>
             </div>
-            <div class="cart-total" id="cart-total">$0.00</div>
+            <div class="cart-total" id="cart-total">₦0.00</div>
         </div>
     </div>
 
@@ -117,18 +114,15 @@
                 <span class="material-icons" onclick="closeCheckoutModal()" style="cursor:pointer;">close</span>
             </div>
             
-            <div class="cart-items-preview" id="cart-items-preview">
-                <!-- Cart items list injected here -->
-            </div>
+            <div class="cart-items-preview" id="cart-items-preview"></div>
 
             <div class="checkout-form">
-                <p style="font-weight: bold; font-size: 18px; margin: 10px 0;">Total: <span id="modal-total">$0.00</span></p>
+                <p style="font-weight: bold; font-size: 18px; margin: 10px 0;">Total: <span id="modal-total">₦0.00</span></p>
                 
                 <div class="input-group">
                     <span class="material-icons">person</span>
                     <select id="checkout-customer">
                         <option value="">Walk-in Customer (No Tracking)</option>
-                        <!-- Customers injected here -->
                     </select>
                 </div>
 
@@ -144,10 +138,10 @@
                 
                 <div class="input-group">
                     <span class="material-icons">attach_money</span>
-                    <input type="number" id="amount-paid" placeholder="Amount Paid" required>
+                    <input type="number" id="amount-paid" placeholder="Amount Paid (₦)" required>
                 </div>
 
-                <p id="balance-due" style="color: #F44336; font-weight: bold; display: none;">Balance Due: $0.00</p>
+                <p id="balance-due" style="color: #F44336; font-weight: bold; display: none;">Balance Due: ₦0.00</p>
 
                 <button class="btn-primary" onclick="processSale()">Complete Sale</button>
             </div>
@@ -164,9 +158,7 @@
             <button class="icon-btn" onclick="openProductModal()"><span class="material-icons">add</span></button>
         </header>
 
-        <main class="dashboard-content" id="inventory-list">
-            <!-- Inventory items injected by JS -->
-        </main>
+        <main class="dashboard-content" id="inventory-list"></main>
     </div>
 
     <!-- ADD / EDIT PRODUCT MODAL -->
@@ -187,12 +179,12 @@
                 
                 <div class="input-group">
                     <span class="material-icons">attach_money</span>
-                    <input type="number" id="prod-price" placeholder="Selling Price ($)" required>
+                    <input type="number" id="prod-price" placeholder="Selling Price (₦)" required>
                 </div>
 
                 <div class="input-group">
                     <span class="material-icons">money_off</span>
-                    <input type="number" id="prod-cost" placeholder="Purchase Cost ($)">
+                    <input type="number" id="prod-cost" placeholder="Purchase Cost (₦)">
                 </div>
                 
                 <div class="input-group">
@@ -224,22 +216,20 @@
             <div class="grid-cards" style="margin-top: 16px;">
                 <div class="stat-card">
                     <h3 style="color: #2E7D32;">Revenue</h3>
-                    <p class="value" id="rep-revenue">$0.00</p>
+                    <p class="value" id="rep-revenue">₦0.00</p>
                 </div>
                 <div class="stat-card">
                     <h3 style="color: #2196F3;">Net Profit</h3>
-                    <p class="value" id="rep-profit">$0.00</p>
+                    <p class="value" id="rep-profit">₦0.00</p>
                 </div>
                 <div class="stat-card">
                     <h3 style="color: #F44336;">Unpaid Balances</h3>
-                    <p class="value" id="rep-unpaid">$0.00</p>
+                    <p class="value" id="rep-unpaid">₦0.00</p>
                 </div>
             </div>
 
             <h3 style="margin: 24px 0 12px; color: var(--text-light);">Transaction History</h3>
-            <div id="transaction-list">
-                <!-- Transactions injected by JS -->
-            </div>
+            <div id="transaction-list"></div>
         </main>
     </div>
 
@@ -253,9 +243,7 @@
             <button class="icon-btn" onclick="openCustomerModal()"><span class="material-icons">person_add</span></button>
         </header>
 
-        <main class="dashboard-content" id="customer-list">
-            <!-- Customers injected here -->
-        </main>
+        <main class="dashboard-content" id="customer-list"></main>
     </div>
 
     <!-- ADD CUSTOMER MODAL -->
@@ -285,22 +273,39 @@
         </div>
     </div>
 
-    <!-- Firebase SDK (Compat Version) -->
+    <!-- SETTINGS SCREEN -->
+    <div id="settings-screen" class="screen hidden">
+        <header class="app-bar">
+            <div class="app-bar-title">
+                <button class="icon-btn" onclick="closeSettings()"><span class="material-icons">arrow_back</span></button>
+                <h2>Business Settings</h2>
+            </div>
+        </header>
+        <main class="dashboard-content">
+            <div class="checkout-form" style="background: var(--surface-color); padding: 20px; border-radius: 16px;">
+                <h3 style="margin-bottom: 16px; color: var(--primary-color);">Company Profile</h3>
+                <div class="input-group">
+                    <span class="material-icons">business</span>
+                    <input type="text" id="set-company-name" value="MBO Enterprises">
+                </div>
+                <div class="input-group">
+                    <span class="material-icons">category</span>
+                    <input type="text" id="set-business-type" value="Solar Sales and Installation">
+                </div>
+                <button class="btn-primary" onclick="saveSettings()">Save Settings</button>
+            </div>
+        </main>
+    </div>
+
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-    
-    <!-- Application Logic -->
     <script src="app.js"></script>
-
-    <!-- PWA Service Worker Registration -->
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('sw.js')
-            .then(reg => console.log('Service Worker Registered!'))
-            .catch(err => console.error('Service Worker Registration Failed', err));
+          navigator.serviceWorker.register('sw.js');
         });
       }
     </script>
 </body>
-</html>
+</html>          
