@@ -1,7 +1,7 @@
 {
-  "name": "MBO Solar Manager",
-  "short_name": "MBO Solar",
-  "description": "POS and Inventory Management for MBO Enterprises",
+  "name": "Sani MS Manager",
+  "short_name": "Sani MS Electronic Enterprise",
+  "description": "POS and Inventory Management for Sani MS Enterprises",
   "start_url": "/index.html",
   "display": "standalone",
   "background_color": "#F5F5F5",
