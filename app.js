@@ -521,3 +521,75 @@ function generateReport(timeframe) {
         `;
     });
 }
+// --- EXPENSE MANAGEMENT LOGIC ---
+let expenses = [];
+
+// Listen to Expenses in Firebase
+db.collection("expenses").orderBy("date", "desc").onSnapshot((snapshot) => {
+    expenses = [];
+    snapshot.forEach((doc) => {
+        const data = doc.data();
+        expenses.push({ id: doc.id, ...data, date: data.date ? data.date.toDate() : new Date() });
+    });
+    if (document.getElementById('expenses-screen').classList.contains('active')) {
+        renderExpenses();
+    }
+});
+
+function openExpenses() {
+    hideAllScreens();
+    document.getElementById('expenses-screen').classList.replace('hidden', 'active');
+    renderExpenses();
+}
+
+function showDashboardFromExpenses() {
+    hideAllScreens();
+    dashboardScreen.classList.replace('hidden', 'active');
+}
+
+function openExpenseModal() { document.getElementById('expense-modal').classList.remove('hidden'); }
+function closeExpenseModal() { document.getElementById('expense-modal').classList.add('hidden'); }
+
+function saveExpense() {
+    const category = document.getElementById('exp-category').value;
+    const amount = parseFloat(document.getElementById('exp-amount').value);
+    const notes = document.getElementById('exp-notes').value;
+
+    if (isNaN(amount) || amount <=0) return alert('Please enter a valid amount.');
+
+    db.collection("expenses").add({
+        category,
+        amount,
+        notes,
+        date: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(() => {
+        document.getElementById('exp-amount').value = '';
+        document.getElementById('exp-notes').value = '';
+        closeExpenseModal();
+    });
+}
+
+function renderExpenses() {
+    const list = document.getElementById('expense-list');
+    list.innerHTML = '';
+    
+    if (expenses.length === 0) {
+        list.innerHTML = '<p style="text-align:center; color:gray; margin-top: 20px;">No expenses recorded yet.</p>';
+        return;
+    }
+
+    expenses.forEach(e => {
+        list.innerHTML += `
+            <div class="customer-card">
+                <div class="customer-info">
+                    <h4>${e.category}</h4>
+                    <p>${e.notes || 'No description'}</p>
+                    <p style="font-size: 10px; color: gray;">${e.date ? e.date.toLocaleDateString() : ''}</p>
+                </div>
+                <div class="customer-balance">
+                    <span class="balance-amount text-red">₦${e.amount.toFixed(2)}</span>
+                </div>
+            </div>
+        `;
+    });
+}
